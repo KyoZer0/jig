@@ -201,6 +201,16 @@ export default function GamePage() {
     }
   };
 
+  const handleTileDragSwap = (fromIndex: number, toIndex: number) => {
+    if (isComplete) return;
+    if (fromIndex === toIndex) return;
+
+    setSelectedTile(null);
+    setHintedTileId(null);
+    swapTiles(fromIndex, toIndex);
+    setMoves(prev => prev + 1);
+  };
+
   const checkWin = (tilesToCheck: Tile[]): boolean => {
     return tilesToCheck.every(tile => tile.currentPos === tile.correctPos);
   };
@@ -296,6 +306,7 @@ export default function GamePage() {
                   selectedTile={selectedTile}
                   hintedTileId={hintedTileId}
                   onTileClick={handleTileClick}
+                  onTileDragSwap={handleTileDragSwap}
                 />
               </div>
             </div>
