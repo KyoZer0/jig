@@ -1,6 +1,8 @@
 'use client';
 
-import { Tile as TileType } from '../types/game';
+import { useMemo } from 'react';
+
+import { Tile as TileType, TileMergeDirections } from '../types/game';
 import Tile from './Tile';
 
 interface PuzzleGridProps {
@@ -9,6 +11,7 @@ interface PuzzleGridProps {
   hintedTileId: number | null;
   onTileClick: (index: number) => void;
   onTileDragSwap: (fromIndex: number, toIndex: number) => void;
+  compact?: boolean;
 }
 
 export default function PuzzleGrid({
@@ -17,9 +20,128 @@ export default function PuzzleGrid({
   hintedTileId,
   onTileClick,
   onTileDragSwap,
+  compact = false,
 }: PuzzleGridProps) {
+  const totalTiles = tiles.length;
+  const computedSize = Math.sqrt(totalTiles);
+  const gridSize =
+    totalTiles === 0
+      ? 1
+      : Number.isInteger(computedSize)
+      ? computedSize
+      : Math.max(1, Math.round(computedSize));
+
+  const createEmptyMerge = (): TileMergeDirections => ({
+    top: false,
+    right: false,
+    bottom: false,
+    left: false,
+    topLeft: false,
+    topRight: false,
+    bottomLeft: false,
+    bottomRight: false,
+  });
+
+  const mergeDirectionsByIndex = useMemo(() => {
+    if (tiles.length === 0) return [];
+
+    const size = gridSize;
+
+    return tiles.map((tile, index) => {
+      if (tile.currentPos !== tile.correctPos) {
+        return createEmptyMerge();
+      }
+
+      const row = Math.floor(index / size);
+      const col = index % size;
+
+      const checkNeighbor = (rowOffset: number, colOffset: number) => {
+        const targetRow = row + rowOffset;
+        const targetCol = col + colOffset;
+
+        if (targetRow < 0 || targetRow >= size || targetCol < 0 || targetCol >= size) {
+          return false;
+        }
+
+        const neighborIndex = targetRow * size + targetCol;
+        const neighborTile = tiles[neighborIndex];
+
+        if (!neighborTile || neighborTile.currentPos !== neighborTile.correctPos) {
+          return false;
+        }
+
+        const tileCorrectRow = Math.floor(tile.correctPos / size);
+        const tileCorrectCol = tile.correctPos % size;
+        const neighborCorrectRow = Math.floor(neighborTile.correctPos / size);
+        const neighborCorrectCol = neighborTile.correctPos % size;
+
+        return (
+          neighborCorrectRow - tileCorrectRow === rowOffset &&
+          neighborCorrectCol - tileCorrectCol === colOffset
+        );
+      };
+
+      return {
+        top: checkNeighbor(-1, 0),
+        right: checkNeighbor(0, 1),
+        bottom: checkNeighbor(1, 0),
+        left: checkNeighbor(0, -1),
+        topLeft: checkNeighbor(-1, -1),
+        topRight: checkNeighbor(-1, 1),
+        bottomLeft: checkNeighbor(1, -1),
+        bottomRight: checkNeighbor(1, 1),
+      };
+    });
+  }, [tiles, gridSize]);
+
+  // Calculate which edges of merged groups should have borders
+  const groupBorderEdges = useMemo(() => {
+    if (tiles.length === 0) return new Map<number, { top: boolean; right: boolean; bottom: boolean; left: boolean }>();
+
+    const size = gridSize;
+    const edges = new Map<number, { top: boolean; right: boolean; bottom: boolean; left: boolean }>();
+
+    tiles.forEach((tile, index) => {
+      if (tile.currentPos !== tile.correctPos) {
+        edges.set(index, { top: false, right: false, bottom: false, left: false });
+        return;
+      }
+
+      const merge = mergeDirectionsByIndex[index] ?? createEmptyMerge();
+      const row = Math.floor(index / size);
+      const col = index % size;
+
+      // Border shows on edges that are not merged (outer edges of the group)
+      edges.set(index, {
+        top: !merge.top,
+        right: !merge.right,
+        bottom: !merge.bottom,
+        left: !merge.left,
+      });
+    });
+
+    return edges;
+  }, [tiles, gridSize, mergeDirectionsByIndex]);
+
   return (
-    <div className="grid aspect-square w-full max-w-full grid-cols-3 gap-[2px] rounded-2xl border border-slate-200 bg-white p-[10px] shadow-sm sm:gap-[3px] sm:p-3">
+    <div
+      className="grid w-full gap-0 rounded-2xl"
+      style={{
+        gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${gridSize}, minmax(0, 1fr))`,
+        borderRadius: compact ? 'var(--radius-round-medium)' : 'var(--radius-round-large)',
+        background: 'var(--color-surface)',
+        boxShadow: 'var(--shadow-soft)',
+        border: 'var(--border-thin)',
+        padding: compact ? 'clamp(4px, 1vw, 8px)' : 'clamp(8px, 1.5vw, 16px)',
+        aspectRatio: '1 / 1',
+        maxWidth: '100%',
+        width: '100%',
+        height: 'auto',
+        maxHeight: compact ? 'min(55vh, 55vw)' : 'min(70vh, 70vw)',
+        gap: 0,
+      }}
+    >
       {tiles.map((tile, index) => (
         <Tile
           key={tile.id}
@@ -30,9 +152,10 @@ export default function PuzzleGrid({
           index={index}
           onClick={() => onTileClick(index)}
           onDragSwap={onTileDragSwap}
+          mergeDirections={mergeDirectionsByIndex[index] ?? createEmptyMerge()}
+          groupBorderEdges={groupBorderEdges.get(index) ?? { top: false, right: false, bottom: false, left: false }}
         />
       ))}
     </div>
   );
 }
-

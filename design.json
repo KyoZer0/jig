@@ -1,0 +1,419 @@
+{
+    "name": "jigsolitaire-design",
+    "version": "1.0",
+    "role": "Creative Director high-level design system",
+    "description": "High-level design tokens and component guidelines to reproduce the visual style shown in the provided screenshot (minimalistic playful puzzle UI with bold yellow accents, soft textured cards, heavy rounded shapes and strong typographic hierarchy). This file is intended to instruct an AI or developer how to replicate the look and behaviour across components.",
+    "meta": {
+    "author": "Creative Director: generated",
+    "date": "2025-11-12",
+    "intendedUse": [
+    "UI tokenization",
+    "Component styling guidance",
+    "Automated UI generation by AI"
+    ]
+    },
+    "tokens": {
+    "colors": {
+    "brand": {
+    "primary": "#FFBF00",
+    "primaryVariant": "#F5B000",
+    "accent": "#FFDD66"
+    },
+    "neutral": {
+    "black": "#0A0A0A",
+    "darkGray": "#2F2F2F",
+    "midGray": "#9A9A9A",
+    "lightGray": "#F3F3F2",
+    "offWhite": "#FFFDF6"
+    },
+    "support": {
+    "success": "#00C853",
+    "danger": "#FF3B30",
+    "muted": "#CFCFCF"
+    },
+    "semantic": {
+    "surface": "#FFFDF6",
+    "cardBackground": "#F8F6F2",
+    "textPrimary": "#1E1E1E",
+    "textSecondary": "#6A6A6A
+    "
+    }
+    },
+    "typography": {
+    "fontFamily": "Helvetica Neue, Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica', Arial",
+    "weights": {
+    "display": 800,
+    "heading": 700,
+    "medium": 500,
+    "regular": 400
+    },
+    "scale": {
+    "xxl": {
+    "size": "48px",
+    "lineHeight": "56px",
+    "letterSpacing": "0.02em",
+    "use": "Hero / big title (JIGSOLITAIRE GAME)"
+    },
+    "xl": {
+    "size": "28px",
+    "lineHeight": "34px",
+    "letterSpacing": "0.01em",
+    "use": "Section headings"
+    },
+    "lg": {
+    "size": "18px",
+    "lineHeight": "24px",
+    "use": "Card titles, primary button text"
+    },
+    "base": {
+    "size": "16px",
+    "lineHeight": "22px",
+    "use": "Body text"
+    },
+    "sm": {
+    "size": "13px",
+    "lineHeight": "18px",
+    "use": "Captions, helper text"
+    }
+    },
+    "rules": [
+    "Display titles: UPPERCASE, heavy weight, tight tracking, bold presence.",
+    "Buttons use medium/700 weight and uppercase for emphasis (small caps acceptable).",
+    "Body text: dark grey (#1E1E1E) for comfortable contrast against off-white surfaces."
+    ]
+    },
+    "spacing": {
+    "unit": 8,
+    "scale": {
+    "xxs": 4,
+    "xs": 8,
+    "sm": 12,
+    "md": 16,
+    "lg": 24,
+    "xl": 32,
+    "xxl": 48
+    },
+    "layoutGuideline": [
+    "Base grid = 8px. Use multiples for padding & gap.",
+    "Small gutters: 12px between tight elements (chips, tags).",
+    "Card internal padding: md (16px) default; lg (24px) for hero/content cards."
+    ]
+    },
+    "radius": {
+    "pill": "9999px",
+    "roundLarge": "20px",
+    "roundMedium": "12px",
+    "roundSmall": "8px",
+    "sharp": "6px"
+    },
+    "shadow": {
+    "soft": "0 6px 20px rgba(16,16,16,0.08)",
+    "elevated": "0 12px 30px rgba(16,16,16,0.12)",
+    "inner": "inset 0 2px 6px rgba(0,0,0,0.04)"
+    },
+    "borders": {
+    "thin": "1px solid rgba(16,16,16,0.06)",
+    "muted": "1px solid rgba(16,16,16,0.04)"
+    },
+    "iconography": {
+    "size": {
+    "xs": 16,
+    "sm": 20,
+    "md": 24,
+    "lg": 32,
+    "xl": 44
+    },
+    "style": "Solid / rounded geometry, heavy strokes for primary icons; use circular badges for notifications."
+    },
+    "elevation": {
+    "level0": {
+    "zIndex": 0,
+    "shadow": "none"
+    },
+    "level1": {
+    "zIndex": 10,
+    "shadow": "soft"
+    },
+    "level2": {
+    "zIndex": 20,
+    "shadow": "elevated"
+    }
+    },
+    "texture": {
+    "suggestion": "subtle topographic line texture at very low opacity on large background cards (4–8% opacity). Use to add tactile feel, not to distract."
+    }
+    },
+    "principles": {
+    "visual": [
+    "Playful seriousness: combine a friendly illustration style (characters/monsters) with a clean, minimal layout.",
+    "High contrast focal accents: the bright yellow acts as the visual anchor for CTAs and badges.",
+    "Soft, tactile surfaces: rounded cards, subtle inner shadows, and a light textured background convey a physical 'puzzle tile' feel."
+    ],
+    "layout": [
+    "Clear visual hierarchy: large display title → section titles → cards → microcopy.",
+    "Generous breathing room around hero elements; tighter spacing inside list items.",
+    "Consistent grid: use a column grid with card gutters equal to md or lg spacing tokens."
+    ],
+    "interaction": [
+    "Big touch targets: minimum 44–48 px for tappable elements (buttons, chips, nav icons).",
+    "Micro-interactions: subtle springy scale on presses, 150–250ms for simple feedback.",
+    "State clarity: hover / focus / pressed states must be visually distinct using elevation, inner shadow, and color swaps."
+    ],
+    "accessibility": [
+    "Maintain at least 4.5:1 contrast for body text and 3:1 for large display text where possible.",
+    "Keyboard focus should have a 3px-wide visible ring using brand.primaryVariant with a muted overlay.",
+    "Ensure icon-only buttons have aria-labels and accessible names."
+    ]
+    },
+    "componentGuidelines": {
+    "button": {
+    "variants": {
+    "primary": {
+    "background": "brand.primary",
+    "color": "neutral.black",
+    "radius": "pill",
+    "padding": ["sm", "md"],
+    "font": {
+    "weight": "weights.heading",
+    "size": "lg",
+    "transform": "uppercase"
+    },
+    "shadow": "level1",
+    "states": {
+    "hover": {
+    "transform": "translateY(-1px)",
+    "background": "brand.primaryVariant",
+    "shadow": "elevated"
+    },
+    "active": {
+    "transform": "scale(0.98)",
+    "shadow": "soft"
+    },
+    "disabled": {
+    "opacity": 0.45,
+    "pointerEvents": "none"
+    }
+    }
+    },
+    "secondary": {
+    "background": "neutral.black",
+    "color": "offWhite",
+    "radius": "roundLarge",
+    "padding": ["sm", "md"]
+    },
+    "ghost": {
+    "background": "transparent",
+    "color": "textPrimary",
+    "border": "thin"
+    },
+    "icon": {
+    "background": "offWhite",
+    "color": "textPrimary",
+    "radius": "roundMedium",
+    "size": "icon.size.md",
+    "shadow": "soft"
+    }
+    },
+    "usage": [
+    "Primary: main CTA (Start Game / Play Now).",
+    "Secondary: destructive or alternate actions (Undo, Pause).",
+    "Icon-button: compact actions on cards (favorite, options)."
+    ]
+    },
+    "card": {
+    "base": {
+    "background": "tokens.colors.surface",
+    "radius": "roundLarge",
+    "padding": "md",
+    "shadow": "soft",
+    "border": "none",
+    "texture": "texture"
+    },
+    "imageCard": {
+    "imageRadius": "roundMedium",
+    "imageCover": "cover",
+    "badgePosition": "top-right",
+    "badgeStyle": "small circular yellow badge with black check icon"
+    },
+    "tileGrid": {
+    "columns": 2,
+    "gap": "sm",
+    "use": "Puzzle selection grid; tiles are tactile and clearly separated."
+    }
+    },
+    "input": {
+    "text": {
+    "background": "offWhite",
+    "border": "thin",
+    "radius": "roundMedium",
+    "padding": ["sm"],
+    "labelStyle": {
+    "size": "sm",
+    "color": "textSecondary",
+    "transform": "uppercase",
+    "weight": "medium"
+    },
+    "states": {
+    "focus": {
+    "borderColor": "brand.primary",
+    "shadow": "inner"
+    },
+    "error": {
+    "borderColor": "danger",
+    "helperColor": "danger"
+    }
+    }
+    },
+    "select": {
+    "pillStyle": true,
+    "icon": "chevron-down (right aligned)"
+    }
+    },
+    "navbar": {
+    "topBar": {
+    "height": 64,
+    "background": "transparent",
+    "contentAlignment": "space-between",
+    "iconStyle": "rounded icon buttons at right (brand black / offWhite)"
+    },
+    "bottomNav": {
+    "height": 72,
+    "background": "surface",
+    "iconsCentered": true,
+    "activeIcon": {
+    "background": "brand.primary",
+    "color": "neutral.black",
+    "radius": "pill"
+    }
+    }
+    },
+    "chipsAndBadges": {
+    "chip": {
+    "radius": "pill",
+    "padding": ["xs", "sm"],
+    "font": "sm uppercase",
+    "color": "textPrimary",
+    "background": "muted / offWhite",
+    "usage": "difficulty tags, small stats"
+    },
+    "badge": {
+    "shape": "circle",
+    "size": 20,
+    "background": "brand.primary",
+    "color": "neutral.black",
+    "placement": "top-right on image cards for 'selected' or 'favorite'"
+    }
+    },
+    "listItem": {
+    "layout": "row",
+    "left": "optional avatar/icon 44px",
+    "center": {
+    "title": "lg",
+    "subtitle": "sm muted"
+    },
+    "right": "small action icon / chevron",
+    "padding": "md",
+    "divider": "muted 1px"
+    },
+    "statsPanel": {
+    "cards": {
+    "compact": true,
+    "iconLeft": true,
+    "titleWeight": "medium",
+    "valueWeight": "heading",
+    "accentStripe": "thin left vertical stripe in brand.primary for emphasis"
+    }
+    },
+    "modal": {
+    "size": {
+    "small": "320px",
+    "medium": "480px",
+    "large": "760px"
+    },
+    "appearance": {
+    "background": "surface",
+    "radius": "roundLarge",
+    "shadow": "elevated",
+    "backdrop": "rgba(10,10,10,0.35)"
+    }
+    },
+    "toast": {
+    "layout": "row",
+    "background": "neutral.black",
+    "color": "offWhite",
+    "radius": "roundMedium",
+    "shadow": "elevated",
+    "duration": 3200
+    }
+    },
+    "layoutPatterns": {
+    "homeScreen": {
+    "hero": {
+    "height": "auto",
+    "title": "xxl uppercase centered left-aligned inside card",
+    "cta": "primary button bottom-left inside hero card"
+    },
+    "list": {
+    "cardStyle": "elevated rounded cards with small left thumbnail and stacked content",
+    "spacing": "md between cards"
+    }
+    },
+    "puzzleSelection": {
+    "grid": {
+    "columns": 2,
+    "gutter": "sm",
+    "tile": {
+    "size": "square",
+    "radius": "roundMedium",
+    "overlayBadge": "selection check in top-right"
+    }
+    }
+    },
+    "gameScreen": {
+    "layout": {
+    "topBar": "timer and moves, small icons to the right",
+    "center": "puzzle canvas on a large card with offWhite background",
+    "bottomControls": "large pill Play/Undo/Hint buttons; centered"
+    }
+    }
+    },
+    "motion": {
+    "duration": {
+    "fast": "120ms",
+    "normal": "240ms",
+    "slow": "360ms"
+    },
+    "easing": {
+    "standard": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "spring": "spring(300,20,0.5)"
+    },
+    "rules": [
+    "Use subtle scale + elevate on hover for interactive tiles.",
+    "Animate badge appearance with a quick scale + opacity (fast).",
+    "Use spring for drag-and-drop puzzle interactions for tactile feel."
+    ]
+    },
+    "accessibilityGuidelines": {
+    "contrast": "maintain minimum 4.5:1 for body text on surfaces, 3:1 for large titles",
+    "touchTargets": "48px minimum for tappable elements",
+    "focus": "visible focus rings for keyboard navigation at all interactive controls",
+    "labels": "all icons must have accessible names (aria-label)"
+    },
+    "exampleTokenMapping": {
+    "cssVariables": {
+    "--color-primary": "tokens.colors.brand.primary",
+    "--color-surface": "tokens.colors.surface",
+    "--text-primary": "tokens.colors.textPrimary",
+    "--radius-card": "tokens.radius.roundLarge",
+    "--shadow-soft": "tokens.shadow.soft",
+    "--space-md": "tokens.spacing.md",
+    "--font-family": "tokens.typography.fontFamily"
+    }
+    },
+    "developerNotes": [
+    "Texture: add an optional low-opacity SVG/topographic pattern behind large cards to mimic the screenshot's subtle lines.",
+    "Illustrations: character assets should be high-contrast, mostly yellow + black with occasional white for eyes/highlights. Place them inside rounded tiles with masks.",
+    "Replication tips for AI: prefer large rounded shapes, heavy uppercase display text and a single saturated yellow accent. Keep backgrounds desaturated (light greys/off-white) and give cards soft shadows and inner highlights to emulate a tactile board-game/puzzle style."
+    ],
+    "readyToUse": true
+    }

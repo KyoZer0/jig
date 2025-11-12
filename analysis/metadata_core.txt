@@ -1,0 +1,18 @@
+Game.Core types and helpers
+Game.Core|Board
+Game.Core|BoardBuilder
+Game.Core|BoardGrid
+Game.Core|BoardGridGroup
+Game.Core|BoardHelper
+Game.Core|Constants
+Game.Core|InputController
+Game.Core|InputUtils
+Game.Core|Piece
+Game.Core|PieceAnimationHandler
+Game.Core|PieceCommon
+Game.Core|PieceGroup
+Game.Core|PieceInitSetting
+Game.Core|PieceSprite
+Game.Core|PieceTexture
+Game.Core|PieceTextureCache
+Game.Core|Settings

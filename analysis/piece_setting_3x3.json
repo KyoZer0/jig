@@ -1,0 +1,64 @@
+{
+  "m_GameObject": {
+    "m_FileID": 0,
+    "m_PathID": 0
+  },
+  "m_Enabled": 1,
+  "m_Script": {
+    "m_FileID": 0,
+    "m_PathID": 8183208772404193443
+  },
+  "m_Name": "3x3",
+  "BackSprite": {
+    "m_FileID": 0,
+    "m_PathID": 6320662111527895679
+  },
+  "BackSpriteRed": {
+    "m_FileID": 0,
+    "m_PathID": 8353613344622176146
+  },
+  "BackSpriteBlack": {
+    "m_FileID": 0,
+    "m_PathID": 6881550853168095147
+  },
+  "BackSpriteGreen": {
+    "m_FileID": 0,
+    "m_PathID": 12153225909100234
+  },
+  "BackScale": {
+    "x": 1.3333333730697632,
+    "y": 1.3333333730697632
+  },
+  "BgCornerTexture": {
+    "m_FileID": 0,
+    "m_PathID": 1989536228845666331
+  },
+  "BgHorizontalTexture": {
+    "m_FileID": 0,
+    "m_PathID": 5489411759818266764
+  },
+  "BgInverseCornerTexture": {
+    "m_FileID": 0,
+    "m_PathID": 7790640695540257541
+  },
+  "BgVerticalTexture": {
+    "m_FileID": 0,
+    "m_PathID": 3326163741631855250
+  },
+  "MaskCornerTexture": {
+    "m_FileID": 0,
+    "m_PathID": 3356749252547235191
+  },
+  "MaskHorizontalTexture": {
+    "m_FileID": 0,
+    "m_PathID": -7694928322990971754
+  },
+  "MaskInverseCornerTexture": {
+    "m_FileID": 0,
+    "m_PathID": -3906444065006255574
+  },
+  "MaskVerticalTexture": {
+    "m_FileID": 0,
+    "m_PathID": -1336174267932407437
+  }
+}

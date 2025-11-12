@@ -4,32 +4,43 @@ interface ControlsProps {
   onNewGame: () => void;
   onShuffle: () => void;
   onHint: () => void;
+  showHints?: boolean;
+  compact?: boolean;
 }
 
-export default function Controls({ onNewGame, onShuffle, onHint }: ControlsProps) {
+export default function Controls({ onNewGame, onShuffle, onHint, showHints = true, compact = false }: ControlsProps) {
+  const buttonStyle = compact 
+    ? { fontSize: '11px', letterSpacing: '0.15em', padding: 'var(--spacing-xs) var(--spacing-sm)' }
+    : { fontSize: '13px', letterSpacing: '0.2em' };
+
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-1 flex-wrap gap-2">
-        <button
-          onClick={onNewGame}
-          className="control-button bg-slate-900 text-white hover:bg-slate-700"
-        >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">New Puzzle</span>
-        </button>
-        <button
-          onClick={onShuffle}
-          className="control-button border-slate-300 bg-white text-slate-800 hover:bg-slate-100"
-        >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">Shuffle</span>
-        </button>
-      </div>
+    <div 
+      className="flex flex-col items-center justify-center sm:flex-row"
+      style={{ gap: compact ? 'var(--spacing-xs)' : 'var(--spacing-sm)' }}
+    >
       <button
-        onClick={onHint}
-        className="control-button w-full border-slate-300 bg-white text-slate-800 hover:bg-slate-100 sm:w-auto"
+        onClick={onNewGame}
+        className="btn-secondary"
+        style={compact ? { minHeight: '36px', ...buttonStyle } : {}}
       >
-        <span className="text-[11px] font-semibold uppercase tracking-[0.2em]">Hint</span>
+        <span style={buttonStyle}>New Puzzle</span>
       </button>
+      <button
+        onClick={onShuffle}
+        className="btn-ghost"
+        style={compact ? { minHeight: '36px', ...buttonStyle } : {}}
+      >
+        <span style={buttonStyle}>Shuffle</span>
+      </button>
+      {showHints && (
+        <button
+          onClick={onHint}
+          className="btn-ghost"
+          style={compact ? { minHeight: '36px', ...buttonStyle } : {}}
+        >
+          <span style={buttonStyle}>Hint</span>
+        </button>
+      )}
     </div>
   );
 }
-

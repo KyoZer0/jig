@@ -3,6 +3,7 @@ export interface Tile {
   currentPos: number;
   correctPos: number;
   imageData: string;
+  puzzleIndex?: number; // For hard levels with multiple puzzles
 }
 
 export interface GameImage {
@@ -18,3 +19,19 @@ export interface GameState {
   isComplete: boolean;
 }
 
+export interface TileMergeDirections {
+  top: boolean;
+  right: boolean;
+  bottom: boolean;
+  left: boolean;
+  topLeft: boolean;
+  topRight: boolean;
+  bottomLeft: boolean;
+  bottomRight: boolean;
+}
+
+export interface PuzzleSet {
+  tiles: Tile[];
+  isComplete: boolean;
+  image: GameImage;
+}
