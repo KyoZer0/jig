@@ -147,12 +147,11 @@ export default function PuzzleGrid({
       {tiles.map((tile, index) => (
         <Tile
           key={tile.id}
+          tile={tile}
           index={index}
           imageUrl={imageUrl}
-          correctPos={tile.correctPos}
           gridSize={gridSize}
           isSelected={selectedTile === index}
-          isCorrect={tile.currentPos === tile.correctPos}
           isHinted={tile.id === hintedTileId}
           onClick={() => onTileClick(index)}
           onDragSwap={onTileDragSwap}

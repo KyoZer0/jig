@@ -11,6 +11,8 @@ export default function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [displayTrack, setDisplayTrack] = useState(1);
+  const [transitionDirection, setTransitionDirection] = useState<'next' | 'prev' | null>(null);
 
   // Refs for GSAP animations
   const containerRef = useRef<HTMLDivElement>(null);
@@ -18,14 +20,21 @@ export default function MiniPlayer() {
   const trackIndicatorRef = useRef<HTMLDivElement>(null);
   const visualizerRef = useRef<HTMLDivElement>(null);
   const barsRef = useRef<HTMLDivElement>(null);
+  const trackNumberRef = useRef<HTMLDivElement>(null);
+  const waveRippleRef = useRef<HTMLDivElement>(null);
+  const discRef = useRef<HTMLDivElement>(null);
 
   const updateState = useCallback(() => {
     const manager = getBackgroundMusicManager();
     setIsPlaying(manager.getIsPlaying());
-    setCurrentTrack(manager.getCurrentTrackIndex() + 1);
+    const trackNum = manager.getCurrentTrackIndex() + 1;
+    setCurrentTrack(trackNum);
+    if (!isTransitioning) {
+      setDisplayTrack(trackNum);
+    }
     setTotalTracks(manager.getTotalTracks());
     setProgress(manager.getProgress());
-  }, []);
+  }, [isTransitioning]);
 
   useEffect(() => {
     const manager = getBackgroundMusicManager();
@@ -126,63 +135,172 @@ export default function MiniPlayer() {
     updateState();
   };
 
-  const handleNext = async () => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    
-    const manager = getBackgroundMusicManager();
-    
-    // Fade out animation
-    if (visualizerRef.current && barsRef.current) {
-      await gsap.to([visualizerRef.current, barsRef.current], {
-        opacity: 0.3,
-        x: -10,
-        duration: 0.2,
-        ease: 'power2.in',
-      });
-    }
+  const animateTrackChange = async (direction: 'next' | 'prev') => {
+    const xOut = direction === 'next' ? -20 : 20;
+    const xIn = direction === 'next' ? 20 : -20;
+    const rotateOut = direction === 'next' ? -180 : 180;
+    const rotateIn = direction === 'next' ? 180 : -180;
 
-    await manager.nextTrack();
-    updateState();
+    // Create timeline for smooth orchestration
+    const tl = gsap.timeline();
 
-    // Fade in animation
-    if (visualizerRef.current && barsRef.current) {
-      gsap.fromTo([visualizerRef.current, barsRef.current], 
-        { opacity: 0.3, x: 10 },
-        { opacity: 1, x: 0, duration: 0.3, ease: 'power2.out' }
+    // Step 1: Trigger wave ripple effect
+    if (waveRippleRef.current) {
+      gsap.fromTo(waveRippleRef.current, 
+        { scale: 0.5, opacity: 1 },
+        { 
+          scale: 2.5, 
+          opacity: 0, 
+          duration: 0.6, 
+          ease: 'power2.out',
+        }
       );
     }
 
+    // Step 2: Animate disc spinning out
+    if (discRef.current) {
+      tl.to(discRef.current, {
+        rotateY: rotateOut,
+        scale: 0.7,
+        opacity: 0,
+        duration: 0.25,
+        ease: 'power3.in',
+      }, 0);
+    }
+
+    // Step 3: Fade out visualizer and bars with slide
+    if (visualizerRef.current && barsRef.current) {
+      tl.to([visualizerRef.current, barsRef.current], {
+        x: xOut,
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.25,
+        ease: 'power3.in',
+      }, 0);
+    }
+
+    // Step 4: Animate track number sliding out
+    if (trackNumberRef.current) {
+      tl.to(trackNumberRef.current, {
+        y: direction === 'next' ? -15 : 15,
+        opacity: 0,
+        scale: 0.7,
+        duration: 0.2,
+        ease: 'power2.in',
+      }, 0);
+    }
+
+    // Wait for exit animations
+    await tl;
+
+    return { xIn, rotateIn, direction };
+  };
+
+  const animateTrackEnter = async (xIn: number, rotateIn: number, direction: 'next' | 'prev') => {
+    const tl = gsap.timeline();
+
+    // Step 1: Animate disc spinning in
+    if (discRef.current) {
+      tl.fromTo(discRef.current, 
+        { rotateY: rotateIn, scale: 0.7, opacity: 0 },
+        { 
+          rotateY: 0, 
+          scale: 1, 
+          opacity: 1, 
+          duration: 0.35, 
+          ease: 'back.out(1.7)',
+        }, 
+        0
+      );
+    }
+
+    // Step 2: Animate visualizer and bars sliding in
+    if (visualizerRef.current && barsRef.current) {
+      tl.fromTo([visualizerRef.current, barsRef.current], 
+        { x: xIn, opacity: 0, scale: 0.8 },
+        { 
+          x: 0, 
+          opacity: 1, 
+          scale: 1, 
+          duration: 0.35, 
+          ease: 'back.out(1.4)',
+        }, 
+        0.05
+      );
+    }
+
+    // Step 3: Animate track number sliding in
+    if (trackNumberRef.current) {
+      tl.fromTo(trackNumberRef.current, 
+        { y: direction === 'next' ? 15 : -15, opacity: 0, scale: 0.7 },
+        { 
+          y: 0, 
+          opacity: 1, 
+          scale: 1, 
+          duration: 0.35, 
+          ease: 'back.out(1.7)',
+        }, 
+        0.1
+      );
+    }
+
+    // Step 4: Bounce effect on container
+    if (containerRef.current) {
+      tl.fromTo(containerRef.current, 
+        { scale: 1.05 },
+        { 
+          scale: 1, 
+          duration: 0.3, 
+          ease: 'elastic.out(1, 0.4)',
+        }, 
+        0.15
+      );
+    }
+
+    await tl;
+  };
+
+  const handleNext = async () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setTransitionDirection('next');
+    
+    const manager = getBackgroundMusicManager();
+    
+    // Animate out
+    const animData = await animateTrackChange('next');
+
+    // Change track
+    await manager.nextTrack();
+    updateState();
+    setDisplayTrack(manager.getCurrentTrackIndex() + 1);
+
+    // Animate in
+    await animateTrackEnter(animData.xIn, animData.rotateIn, animData.direction);
+
+    setTransitionDirection(null);
     setIsTransitioning(false);
   };
 
   const handlePrevious = async () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
+    setTransitionDirection('prev');
     
     const manager = getBackgroundMusicManager();
     
-    // Fade out animation
-    if (visualizerRef.current && barsRef.current) {
-      await gsap.to([visualizerRef.current, barsRef.current], {
-        opacity: 0.3,
-        x: 10,
-        duration: 0.2,
-        ease: 'power2.in',
-      });
-    }
+    // Animate out
+    const animData = await animateTrackChange('prev');
 
+    // Change track
     await manager.previousTrack();
     updateState();
+    setDisplayTrack(manager.getCurrentTrackIndex() + 1);
 
-    // Fade in animation
-    if (visualizerRef.current && barsRef.current) {
-      gsap.fromTo([visualizerRef.current, barsRef.current], 
-        { opacity: 0.3, x: -10 },
-        { opacity: 1, x: 0, duration: 0.3, ease: 'power2.out' }
-      );
-    }
+    // Animate in
+    await animateTrackEnter(animData.xIn, animData.rotateIn, animData.direction);
 
+    setTransitionDirection(null);
     setIsTransitioning(false);
   };
 
@@ -225,49 +343,85 @@ export default function MiniPlayer() {
         className="flex items-center gap-1.5 px-1.5 py-1.5 rounded-full bg-white border border-slate-200 shadow-sm"
         style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)' }}
       >
-        {/* Visualizer Circle */}
-        <div 
-          ref={visualizerRef}
-          className="relative w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center cursor-pointer shadow-md"
-          onClick={handlePlayPause}
-        >
-          {/* Animated bars when playing */}
-          <div ref={barsRef} className="flex items-end gap-[2px] h-3.5">
-            {isPlaying ? (
-              <>
-                <div className="w-[3px] bg-white/90 rounded-full animate-bar-1" />
-                <div className="w-[3px] bg-white/90 rounded-full animate-bar-2" />
-                <div className="w-[3px] bg-white/90 rounded-full animate-bar-3" />
-              </>
-            ) : (
-              <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            )}
-          </div>
+        {/* Visualizer Circle with enhanced animations */}
+        <div className="relative" style={{ perspective: '200px' }}>
+          {/* Wave ripple effect - expands outward on track change */}
+          <div 
+            ref={waveRippleRef}
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{ 
+              background: 'radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%)',
+              opacity: 0,
+              transform: 'scale(0.5)',
+            }}
+          />
           
-          {/* Progress ring */}
-          <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 36 36">
-            <circle
-              cx="18"
-              cy="18"
-              r="16"
-              fill="none"
-              stroke="rgba(255,255,255,0.3)"
-              strokeWidth="2"
-            />
-            <circle
-              cx="18"
-              cy="18"
-              r="16"
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeDasharray={`${progress * 100} 100`}
-              strokeLinecap="round"
-              style={{ transition: 'stroke-dasharray 0.1s ease' }}
-            />
-          </svg>
+          {/* Main disc container with 3D flip */}
+          <div 
+            ref={discRef}
+            className="relative"
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            <div 
+              ref={visualizerRef}
+              className="relative w-8 h-8 rounded-full overflow-hidden bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center cursor-pointer shadow-md"
+              onClick={handlePlayPause}
+              style={{
+                boxShadow: isTransitioning 
+                  ? '0 0 20px rgba(251, 191, 36, 0.6), 0 4px 12px rgba(0,0,0,0.15)' 
+                  : '0 4px 12px rgba(0,0,0,0.15)',
+                transition: 'box-shadow 0.3s ease',
+              }}
+            >
+              {/* Animated bars when playing */}
+              <div ref={barsRef} className="flex items-end gap-[2px] h-3.5">
+                {isPlaying ? (
+                  <>
+                    <div className="w-[3px] bg-white/90 rounded-full animate-bar-1" />
+                    <div className="w-[3px] bg-white/90 rounded-full animate-bar-2" />
+                    <div className="w-[3px] bg-white/90 rounded-full animate-bar-3" />
+                  </>
+                ) : (
+                  <svg className="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                )}
+              </div>
+              
+              {/* Progress ring */}
+              <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 36 36">
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="2"
+                />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="16"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="2.5"
+                  strokeDasharray={`${progress * 100} 100`}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 0.1s ease' }}
+                />
+              </svg>
+              
+              {/* Spinning highlight during transition */}
+              {isTransitioning && (
+                <div 
+                  className="absolute inset-0 rounded-full pointer-events-none animate-spin-slow"
+                  style={{
+                    background: 'conic-gradient(from 0deg, transparent 0%, rgba(255,255,255,0.3) 25%, transparent 50%)',
+                  }}
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Controls - shown on hover */}
@@ -280,8 +434,12 @@ export default function MiniPlayer() {
           <button
             onClick={handlePrevious}
             disabled={isTransitioning}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="track-btn w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50 active:scale-90"
             aria-label="Previous track"
+            style={{
+              transform: transitionDirection === 'prev' ? 'scale(0.85)' : undefined,
+              transition: 'transform 0.15s ease',
+            }}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
@@ -291,7 +449,7 @@ export default function MiniPlayer() {
           {/* Play/Pause */}
           <button
             onClick={handlePlayPause}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg transition-shadow"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-linear-to-br from-amber-400 to-orange-500 text-white shadow-md hover:shadow-lg transition-all active:scale-90"
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
@@ -309,8 +467,12 @@ export default function MiniPlayer() {
           <button
             onClick={handleNext}
             disabled={isTransitioning}
-            className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors disabled:opacity-50"
+            className="track-btn w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all disabled:opacity-50 active:scale-90"
             aria-label="Next track"
+            style={{
+              transform: transitionDirection === 'next' ? 'scale(0.85)' : undefined,
+              transition: 'transform 0.15s ease',
+            }}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
@@ -321,9 +483,26 @@ export default function MiniPlayer() {
         {/* Track indicator - visible when collapsed */}
         <div 
           ref={trackIndicatorRef}
-          className="text-[11px] font-semibold text-slate-500 tabular-nums pr-1"
+          className="relative overflow-hidden pr-1"
         >
-          {totalTracks > 0 && `${currentTrack}/${totalTracks}`}
+          <div 
+            ref={trackNumberRef}
+            className="text-[11px] font-semibold text-slate-500 tabular-nums"
+            style={{
+              transition: 'color 0.2s ease',
+              color: isTransitioning ? 'var(--color-primary, #f59e0b)' : undefined,
+            }}
+          >
+            {totalTracks > 0 && (
+              <span className="flex items-center gap-0.5">
+                <span className={`inline-block ${transitionDirection ? 'font-bold' : ''}`}>
+                  {displayTrack}
+                </span>
+                <span className="text-slate-400">/</span>
+                <span>{totalTracks}</span>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -341,6 +520,10 @@ export default function MiniPlayer() {
           25% { height: 100%; }
           75% { height: 30%; }
         }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
         .animate-bar-1 {
           height: 40%;
           animation: bar1 0.8s ease-in-out infinite;
@@ -352,6 +535,9 @@ export default function MiniPlayer() {
         .animate-bar-3 {
           height: 55%;
           animation: bar3 0.7s ease-in-out infinite;
+        }
+        .animate-spin-slow {
+          animation: spin-slow 0.5s linear infinite;
         }
       `}</style>
     </div>
