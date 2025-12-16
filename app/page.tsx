@@ -47,7 +47,7 @@ function GamePageContent() {
   const [puzzleSets, setPuzzleSets] = useState<PuzzleSet[]>([]); // For hard levels
   const [selectedTile, setSelectedTile] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
-  const [startTime, setStartTime] = useState<number>(Date.now());
+  const [, setStartTime] = useState<number>(Date.now());
   const [time, setTime] = useState('0:00');
   const [timeInSeconds, setTimeInSeconds] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
@@ -61,8 +61,6 @@ function GamePageContent() {
   const [hintedTileId, setHintedTileId] = useState<number | null>(null);
   const [settings, setSettings] = useState(getSettings());
   const [earnedStars, setEarnedStars] = useState(0);
-  const [history, setHistory] = useState<Tile[][]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
   const [tileDimensions, setTileDimensions] = useState({ width: 200, height: 280 });
   const [gridSize, setGridSize] = useState(3);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -117,7 +115,7 @@ function GamePageContent() {
   }, [tiles, isComplete]);
 
   // Timer effect
-  // Timer effect
+  const hasTiles = tiles.length > 0;
   useEffect(() => {
     if (isComplete || !settings.playWithTime) {
       if (timerRef.current) {
@@ -127,11 +125,11 @@ function GamePageContent() {
       return;
     }
 
-    if (tiles.length > 0) {
+    if (hasTiles) {
       // Clear any existing timer
       if (timerRef.current) clearInterval(timerRef.current);
 
-      const start = Date.now() - (timeInSeconds * 1000); // Resume from current time if any
+      const start = Date.now();
       setStartTime(start);
 
       timerRef.current = setInterval(() => {
@@ -147,7 +145,7 @@ function GamePageContent() {
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [isComplete, tiles.length > 0, settings.playWithTime]);
+  }, [isComplete, hasTiles, settings.playWithTime]);
 
   const shuffleTiles = useCallback((tilesToShuffle: Tile[]): Tile[] => {
     const positions = tilesToShuffle.map(t => t.currentPos);
@@ -197,8 +195,6 @@ function GamePageContent() {
       setTime('00:00');
       setIsComplete(false);
       setEarnedStars(0);
-      setHistory([]);
-      setHistoryIndex(-1);
 
       // Reset timer
       if (timerRef.current) clearInterval(timerRef.current);
@@ -544,13 +540,59 @@ function GamePageContent() {
     initializeGame();
   };
 
+  // Fast level switching without page reload
+  const switchToLevel = useCallback(async (level: number) => {
+    if (level < 1 || level > availableImages.length) return;
+    
+    setIsLoading(true);
+    setLastPlayedLevel(level);
+    
+    const isHard = level % 5 === 0;
+    setIsHardLevel(isHard);
+    setCurrentLevel(level);
+    
+    // Update URL without navigation
+    window.history.replaceState({}, '', `/?level=${level}`);
+    
+    if (isHard) {
+      const imageIndices: number[] = [];
+      const baseIndex = level - 1;
+      for (let i = 0; i < 3; i++) {
+        const idx = (baseIndex + i) % availableImages.length;
+        imageIndices.push(idx);
+      }
+      const hardImages = imageIndices.map(idx => availableImages[idx]);
+      await createHardLevel(hardImages);
+    } else {
+      const selectedImage = availableImages[level - 1];
+      const newTiles = await createNewGame(selectedImage, 3);
+      setTiles(newTiles);
+      setCurrentImage(selectedImage);
+      setPuzzleSets([]);
+    }
+    
+    setSelectedTile(null);
+    setMoves(0);
+    setStartTime(Date.now());
+    setTimeInSeconds(0);
+    setTime('0:00');
+    setIsComplete(false);
+    setHintedTileId(null);
+    setEarnedStars(0);
+    setIsLoading(false);
+  }, [availableImages, createNewGame, createHardLevel]);
+
   const handleNextLevel = () => {
     if (currentLevel !== null && currentLevel < availableImages.length) {
-      const nextLevel = currentLevel + 1;
-      setLastPlayedLevel(nextLevel);
-      router.push(`/?level=${nextLevel}`);
+      switchToLevel(currentLevel + 1);
     } else {
       router.push('/levels');
+    }
+  };
+
+  const handlePrevLevel = () => {
+    if (currentLevel !== null && currentLevel > 1) {
+      switchToLevel(currentLevel - 1);
     }
   };
 
@@ -602,28 +644,37 @@ function GamePageContent() {
       {isComplete && <Confetti />}
 
       {/* Hero Game Section - Full Height */}
-      <div className="h-screen flex flex-col relative overflow-hidden">
-        {/* Navbar */}
-        <nav className="shrink-0 z-50 w-full glass-panel px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <div className="h-dvh flex flex-col relative overflow-hidden">
+        {/* Navbar - More compact on mobile */}
+        <nav className="shrink-0 z-50 w-full glass-panel px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-linear-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="white" className="sm:w-5 sm:h-5">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="text-xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>JigSolitaire</span>
+            <span className="text-base sm:text-xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>JigSolitaire</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Mini Music Player */}
-            <MiniPlayer />
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Level indicator on mobile */}
+            {currentLevel && (
+              <span className="sm:hidden text-xs font-semibold px-2 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                Lv.{currentLevel}
+              </span>
+            )}
+            
+            {/* Mini Music Player - hidden on small mobile */}
+            <div className="hidden sm:block">
+              <MiniPlayer />
+            </div>
             
             <button
               onClick={() => router.push('/settings')}
-              className="btn-ghost rounded-full h-10 w-10 p-0 flex items-center justify-center"
+              className="btn-ghost rounded-full h-9 w-9 sm:h-10 sm:w-10 p-0 flex items-center justify-center"
               aria-label="Settings"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="sm:w-5 sm:h-5">
                 <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
@@ -634,8 +685,8 @@ function GamePageContent() {
         <div id="play-now" className="flex-1 min-h-0 relative flex flex-col lg:flex-row">
           {/* Main Game Area */}
           <div className="relative flex-1 min-h-0 flex flex-col">
-            {/* Game Header / HUD */}
-            <div className="absolute top-4 left-0 right-0 z-10 px-6 flex justify-between items-start pointer-events-none">
+            {/* Game Header / HUD - Desktop */}
+            <div className="hidden sm:flex absolute top-4 left-0 right-0 z-10 px-6 justify-between items-start pointer-events-none">
               <div className="pointer-events-auto">
                 <Stats moves={moves} time={time} progress={progress} compact={true} />
               </div>
@@ -654,12 +705,12 @@ function GamePageContent() {
 
             <div
               id="game-container"
-              className="relative flex-1 min-h-0 flex items-center justify-center p-4 lg:p-6"
+              className="relative flex-1 min-h-0 flex items-center justify-center p-2 sm:p-4 lg:p-6"
               style={{
                 background: 'radial-gradient(circle at center, #F8FAFC 0%, #E2E8F0 100%)',
               }}
             >
-              <div className="w-full h-full flex items-center justify-center" style={{ maxWidth: '500px' }}>
+              <div className="w-full h-full flex items-center justify-center max-w-[95vw] sm:max-w-[500px]">
                 <PuzzleBoard
                   tiles={tiles}
                   selectedTile={selectedTile}
@@ -686,8 +737,8 @@ function GamePageContent() {
               />
             </div>
 
-            {/* Floating Dock Controls */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
+            {/* Desktop Floating Dock Controls */}
+            <div className="hidden sm:block absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
               <div className="glass-panel p-2 rounded-full flex items-center gap-2 shadow-2xl">
                 <Controls
                   onNewGame={handleNewGame}
@@ -700,26 +751,121 @@ function GamePageContent() {
             </div>
           </div>
 
-          {/* Sidebar / Level Selector */}
+          {/* Sidebar / Level Selector - Desktop */}
           <div className="hidden lg:flex flex-col w-80 shrink-0 min-h-0 p-3 pl-0">
             <LevelSelector
               images={availableImages}
               currentLevel={currentLevel}
               onSelect={(level) => {
-                router.push(`/?level=${level}`);
+                switchToLevel(level);
               }}
             />
           </div>
         </div>
 
-        {/* Mobile Level Selector Drawer (Simplified for now) */}
-        <div className="lg:hidden shrink-0 p-3 bg-white border-t border-slate-200">
-          <button
-            onClick={() => router.push('/levels')}
-            className="btn-secondary w-full text-sm py-2"
-          >
-            Browse Collections
-          </button>
+        {/* Mobile Bottom Bar - Stats, Controls, Navigation */}
+        <div className="sm:hidden shrink-0 glass-panel border-t border-slate-200/50 safe-area-inset-bottom">
+          {/* Mobile Stats Row */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span className="text-sm font-semibold text-slate-700 tabular-nums">{moves}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                <span className="text-sm font-semibold text-slate-700 tabular-nums">{time}</span>
+              </div>
+            </div>
+            {/* Progress bar */}
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-yellow-500 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <span className="text-xs font-semibold text-slate-500">{Math.round(progress)}%</span>
+            </div>
+          </div>
+          
+          {/* Mobile Controls Row */}
+          <div className="flex items-center justify-between px-2 py-2">
+            {/* Level Navigation */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrevLevel}
+                disabled={!currentLevel || currentLevel <= 1}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                aria-label="Previous level"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => router.push('/levels')}
+                className="h-10 px-3 flex items-center gap-1.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-sm active:scale-95 transition-transform"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7"/>
+                  <rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Levels</span>
+              </button>
+              <button
+                onClick={handleNextLevel}
+                disabled={!currentLevel || currentLevel >= availableImages.length}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-transform"
+                aria-label="Next level"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Game Controls */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handleShuffle}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 active:scale-95 transition-transform"
+                aria-label="Shuffle"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+                </svg>
+              </button>
+              {settings.showHints && (
+                <button
+                  onClick={handleHint}
+                  className="h-10 w-10 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-600 active:scale-95 transition-transform"
+                  aria-label="Hint"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={handleNewGame}
+                className="h-10 w-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 active:scale-95 transition-transform"
+                aria-label="Restart"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

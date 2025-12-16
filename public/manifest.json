@@ -30,9 +30,9 @@
   ],
   "screenshots": [
     {
-      "src": "/og-image.svg",
+      "src": "/Jigsolitaire.online_Thumbnail.png",
       "sizes": "1200x630",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "form_factor": "wide",
       "label": "JigSolitaire gameplay"
     }
