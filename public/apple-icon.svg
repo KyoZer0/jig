@@ -1,0 +1,29 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FBBF24"/>
+      <stop offset="100%" style="stop-color:#D97706"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="180" height="180" rx="40" fill="url(#appleGrad)"/>
+  
+  <!-- Puzzle icon -->
+  <g transform="translate(90, 90)">
+    <path d="M0 -45L-52 -18L0 9L52 -18L0 -45Z" 
+          fill="white" fill-opacity="0.3"/>
+    <path d="M-52 -18L-52 18L0 45L0 9L-52 -18Z" 
+          fill="white" fill-opacity="0.5"/>
+    <path d="M52 -18L52 18L0 45L0 9L52 -18Z" 
+          fill="white" fill-opacity="0.4"/>
+    <path d="M0 -45L-52 -18L0 9L52 -18L0 -45Z" 
+          stroke="white" stroke-width="3" fill="none" stroke-linejoin="round"/>
+    <path d="M-52 18L0 45L52 18" 
+          stroke="white" stroke-width="3" fill="none" stroke-linejoin="round"/>
+    <path d="M0 9L0 45" stroke="white" stroke-width="3" fill="none"/>
+    <path d="M-52 -18L-52 18" stroke="white" stroke-width="3" fill="none"/>
+    <path d="M52 -18L52 18" stroke="white" stroke-width="3" fill="none"/>
+  </g>
+</svg>
+

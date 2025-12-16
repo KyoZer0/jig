@@ -1,12 +1,55 @@
+# JigSolitaire - Free Online Jigsaw Puzzle Game
+# https://jigsolitaire.online
+
 User-agent: *
 Allow: /
+Allow: /game
+Allow: /levels
+Allow: /settings
 
-# Sitemap
+# Block crawling of API routes and internal assets
+Disallow: /api/
+Disallow: /_next/
+Disallow: /sounds/
+
+# Sitemap location
 Sitemap: https://jigsolitaire.online/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
 
+# Googlebot-specific rules (Googlebot ignores Crawl-delay)
+User-agent: Googlebot
+Allow: /
+Allow: /game
+Allow: /levels
+Allow: /settings
+Disallow: /api/
+Disallow: /_next/
 
+# Bing-specific rules
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
 
+# Social media crawlers - full access for rich previews
+User-agent: Twitterbot
+Allow: /
 
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Pinterest
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+# Host directive (non-standard but recognized by some crawlers)
+Host: https://jigsolitaire.online
